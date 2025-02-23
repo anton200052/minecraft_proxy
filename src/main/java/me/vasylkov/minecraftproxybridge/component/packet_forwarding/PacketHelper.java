@@ -36,6 +36,8 @@ public class PacketHelper {
             hexData.append(String.format("%02X ", b));
         }
 
-        logger.info("{}: {} {} {}", packetDirection, clientType, packetState, hexData.toString().trim());
+        if (clientType == ClientType.MIRROR) {
+            logger.info("{}: {} {} {}", packetDirection, clientType, packetState, hexData.toString().trim());
+        }
     }
 }

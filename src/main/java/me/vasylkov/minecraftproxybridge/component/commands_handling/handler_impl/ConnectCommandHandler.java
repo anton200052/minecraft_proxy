@@ -2,7 +2,7 @@ package me.vasylkov.minecraftproxybridge.component.commands_handling.handler_imp
 
 import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.commands_handling.handling_tools.SystemChatLineSender;
-import me.vasylkov.minecraftproxybridge.model.proxy.ProxyClient;
+import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,7 +11,7 @@ public class ConnectCommandHandler implements CommandHandler {
     private final SystemChatLineSender chatLineSender;
 
     @Override
-    public void handleCommand(ProxyClient proxyClient, String command, String[] args) {
+    public void handleCommand(ProxyConnection proxyConnection, String command, String[] args) {
 
     }
 

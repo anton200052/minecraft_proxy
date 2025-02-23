@@ -6,13 +6,13 @@ import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.Pa
 import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketEncoder;
 import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketParserDispatcher;
 import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.ZlibCompressor;
-import me.vasylkov.minecraftproxybridge.component.proxy.ConnectedProxyClientsStorage;
+import me.vasylkov.minecraftproxybridge.component.proxy.ConnectedProxyConnections;
+import me.vasylkov.minecraftproxybridge.component.proxy.MirroredProxyConnector;
 import me.vasylkov.minecraftproxybridge.component.proxy.ProxyConfiguration;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketDirection;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
-import me.vasylkov.minecraftproxybridge.model.proxy.ClientType;
-import me.vasylkov.minecraftproxybridge.model.proxy.ProxyClient;
+import me.vasylkov.minecraftproxybridge.model.proxy.*;
 import org.slf4j.Logger;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -33,124 +33,111 @@ public class PacketForwarder {
     private final ZlibCompressor zlibCompressor;
     private final PacketEncoder packetEncoder;
     private final PacketRawDataSender packetRawDataSender;
-    private final ConnectedProxyClientsStorage connectedProxyClientsStorage;
+    private final ConnectedProxyConnections connectedProxyConnections;
 
     @Async
-    public void forwardDataFromMainClient(ProxyClient proxyClient) {
-        ProxyClient.ClientConnection clientConnection = proxyClient.getConnection();
-        try (Socket clientSocket = clientConnection.getMainClientSocket()) {
+    public void forwardDataFromMainClient(ProxyConnection proxyConnection) {
+        try (Socket clientSocket = proxyConnection.getMainProxyClient().getSocket()) {
             InputStream input = clientSocket.getInputStream();
-
             while (proxyConfiguration.isEnabled()) {
-                byte[] packetData = processPacket(input, PacketDirection.CLIENT_TO_SERVER, ClientType.MAIN, proxyClient);
-
-                if (packetData != null) {
-                    packetRawDataSender.sendPacketDataToServer(clientConnection, packetData);
+                byte[] packetData = processPacket(input, PacketDirection.CLIENT_TO_SERVER, ClientType.MAIN, proxyConnection);
+                if (packetData != null && packetData.length > 0) {
+                    packetRawDataSender.sendPacketDataToServer(proxyConnection, packetData);
                 }
             }
         }
         catch (Exception e) {
-            logger.error("Ошибка обработки пакета (proxy -> server): {}", e.getMessage());
+            e.printStackTrace();
         }
         finally {
-            connectedProxyClientsStorage.removeProxyClient(proxyClient.getData().getHostAddress());
-            proxyClient.getState().setForwardingFromMirrorProxyAllowed(true);
-            proxyClient.getConnection().setMainClientSocket(null);
+            connectedProxyConnections.removeProxyConnection(proxyConnection.getMainProxyClient().getHostAddress());
+            MirrorProxyClient mirrorProxyClient = proxyConnection.getMirrorProxyClient();
+            proxyConnection.setMainProxyClient(null);
+
+            if (mirrorProxyClient != null) {
+                mirrorProxyClient.setForwardingFromMirrorProxyAllowed(true);
+            }
         }
     }
 
     @Async
-    public void forwardDataFromMirrorClient(ProxyClient proxyClient) {
-        ProxyClient.ClientConnection clientConnection = proxyClient.getConnection();
-        try (Socket clientSocket = clientConnection.getMirrorClientSocket()) {
+    public void forwardDataFromMirrorClient(ProxyConnection proxyConnection) {
+        try (Socket clientSocket = proxyConnection.getMirrorProxyClient().getSocket()) {
             InputStream input = clientSocket.getInputStream();
-
             while (proxyConfiguration.isEnabled()) {
-                byte[] packetData = processPacket(input, PacketDirection.CLIENT_TO_SERVER, ClientType.MIRROR, proxyClient);
+                byte[] packetData = processPacket(input, PacketDirection.CLIENT_TO_SERVER, ClientType.MIRROR, proxyConnection);
 
-                if (packetData != null && proxyClient.getState().isForwardingFromMirrorProxyAllowed()) {
-                    packetRawDataSender.sendPacketDataToServer(clientConnection, packetData);
+                MirrorProxyClient mirrorProxyClient = proxyConnection.getMirrorProxyClient();
+                if (packetData != null && packetData.length > 0 && mirrorProxyClient != null && mirrorProxyClient.isForwardingFromMirrorProxyAllowed()) {
+                    packetRawDataSender.sendPacketDataToServer(proxyConnection, packetData);
                 }
             }
         }
         catch (Exception e) {
-            logger.error("Ошибка обработки пакета (mirror proxy -> server): {}", e.getMessage());
+            e.printStackTrace();
         }
         finally {
-            proxyClient.getConnection().setMirrorClientSocket(null);
-            proxyClient.getState().setForwardingFromMirrorProxyAllowed(false);
-            proxyClient.getState().setForwardingToMirrorProxyAllowed(false);
-            proxyClient.getState().setMirrorProxyState(PacketState.HANDSHAKE);
+            proxyConnection.setMirrorProxyClient(null);
         }
     }
 
     @Async
-    public void forwardDataToClients(ProxyClient proxyClient) {
-        ProxyClient.ClientConnection connection = proxyClient.getConnection();
-        ProxyClient.ClientState state = proxyClient.getState();
-
-        try (Socket serverSocket = connection.getServerSocket()) {
+    public void forwardDataToClients(ProxyConnection proxyConnection) {
+        try (Socket serverSocket = proxyConnection.getServerData().getSocket()) {
             InputStream serverInput = serverSocket.getInputStream();
-
             while (proxyConfiguration.isEnabled()) {
-
-                byte[] packetData = processPacket(serverInput, PacketDirection.SERVER_TO_CLIENT, ClientType.MAIN, proxyClient);
+                byte[] packetData = processPacket(serverInput, PacketDirection.SERVER_TO_CLIENT, ClientType.MAIN, proxyConnection);
                 if (packetData == null || packetData.length == 0) {
                     continue;
                 }
 
-                if (proxyClient.getConnection().getMainClientSocket() != null) {
-                    packetRawDataSender.sendPacketDataToMainClient(connection, packetData);
+                MainProxyClient mainProxyClient = proxyConnection.getMainProxyClient();
+                if (mainProxyClient != null && !mainProxyClient.getSocket().isClosed()) {
+                    packetRawDataSender.sendPacketDataToMainClient(proxyConnection, packetData);
                 }
 
-                if (state.isForwardingToMirrorProxyAllowed()) {
-                    Socket mirrorSocket = connection.getMirrorClientSocket();
-                    if (mirrorSocket != null && !mirrorSocket.isClosed()) {
-                        packetRawDataSender.sendPacketDataToMirrorClient(connection, packetData);
-                    }
+                MirrorProxyClient mirrorProxyClient = proxyConnection.getMirrorProxyClient();
+                if (mirrorProxyClient != null && mirrorProxyClient.isForwardingToMirrorProxyAllowed() && !mirrorProxyClient.getSocket().isClosed()) {
+                    packetRawDataSender.sendPacketDataToMirrorClient(proxyConnection, packetData);
                 }
             }
         }
         catch (Exception e) {
-            logger.error("Ошибка обработки пакета (server -> proxies): {}", e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private byte[] processPacket(InputStream input, PacketDirection packetDirection, ClientType clientType, ProxyClient proxyClient) throws IOException {
+    private byte[] processPacket(InputStream input, PacketDirection packetDirection, ClientType clientType, ProxyConnection proxyConnection) throws IOException {
         int packetLength = packetDataCodec.readVarInt(input);
+        if (packetLength < 0) {
+            return new byte[0];
+        }
         int dataLength = 0;
-
-        int compressionThreshold = getCompressionThreshold(proxyClient, clientType);
+        int compressionThreshold = getCompressionThreshold(proxyConnection, clientType);
         if (compressionThreshold > 0) {
             dataLength = packetDataCodec.readVarInt(input);
             packetLength -= packetDataCodec.encodeVarInt(dataLength).length;
         }
-
         byte[] buffer = packetHelper.readRemainingPacketData(input, packetLength);
         if (dataLength > 0) {
             buffer = zlibCompressor.decompressZlib(buffer, dataLength);
         }
-
-        PacketState state = getPacketState(proxyClient, clientType);
+        PacketState state = getPacketState(proxyConnection, clientType);
         Packet parsedPacket = packetParserDispatcher.parsePacket(state, packetDirection, buffer);
-        Packet handledPacket  = packetHandlingDispatcher.handlePacket(proxyClient, clientType, parsedPacket);
-        if (handledPacket != null) {
-            byte[] packetData = packetEncoder.encodePacket(handledPacket, compressionThreshold);
-            packetHelper.printPacketData(packetData, packetDirection, state, clientType);
-            return packetData;
+        Packet handledPacket = packetHandlingDispatcher.handlePacket(proxyConnection, clientType, parsedPacket);
+        if (handledPacket == null) {
+            return new byte[0];
         }
-        return new byte[0];
+        byte[] packetData = packetEncoder.encodePacket(handledPacket, compressionThreshold);
+        packetHelper.printPacketData(packetData, packetDirection, state, clientType);
+        return packetData;
     }
 
-    private int getCompressionThreshold(ProxyClient proxyClient, ClientType clientType) {
-        return clientType == ClientType.MAIN ?
-                proxyClient.getData().getMainClientCompressionThreshold() :
-                proxyClient.getData().getMirrorClientCompressionThreshold();
+    private int getCompressionThreshold(ProxyConnection proxyConnection, ClientType clientType) {
+        return clientType == ClientType.MAIN ? proxyConnection.getMainProxyClient().getCompressionThreshold() : proxyConnection.getMirrorProxyClient().getCompressionThreshold();
     }
 
-    private PacketState getPacketState(ProxyClient proxyClient, ClientType clientType) {
-        return clientType == ClientType.MAIN ?
-                proxyClient.getState().getMainProxyState() :
-                proxyClient.getState().getMirrorProxyState();
+    private PacketState getPacketState(ProxyConnection proxyConnection, ClientType clientType) {
+        return clientType == ClientType.MAIN ? proxyConnection.getMainProxyClient().getPacketState() : proxyConnection.getMirrorProxyClient().getPacketState();
     }
 }

@@ -6,7 +6,7 @@ import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packe
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.StatusRequestPacket;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.StatusResponsePacket;
 import me.vasylkov.minecraftproxybridge.model.proxy.ClientType;
-import me.vasylkov.minecraftproxybridge.model.proxy.ProxyClient;
+import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,12 +15,21 @@ public class StatusRequestPacketHandler implements PacketHandler {
     private final ExtraPacketSender extraPacketSender;
 
     @Override
-    public Packet handlePacket(ProxyClient proxyClient, Packet packet, ClientType clientType) {
+    public Packet handlePacket(ProxyConnection proxyConnection, Packet packet, ClientType clientType) {
         if (clientType == ClientType.MIRROR) {
-            StatusResponsePacket.MinecraftServerInfo minecraftServerInfo = new StatusResponsePacket.MinecraftServerInfo(false, false, new StatusResponsePacket.MinecraftServerInfo.Description("A Minecraft Server"), new StatusResponsePacket.MinecraftServerInfo.Players(20, 0), new StatusResponsePacket.MinecraftServerInfo.Version("Paper 1.19.2", 760));
-            StatusResponsePacket statusResponsePacket = new StatusResponsePacket(0, minecraftServerInfo);
-
-            extraPacketSender.sendExtraPacketToMirrorClient(proxyClient.getConnection(), statusResponsePacket, proxyClient.getData().getMirrorClientCompressionThreshold());
+            StatusResponsePacket.MinecraftServerInfo info = new StatusResponsePacket.MinecraftServerInfo(
+                    false,
+                    false,
+                    new StatusResponsePacket.MinecraftServerInfo.Description("A Minecraft Server"),
+                    new StatusResponsePacket.MinecraftServerInfo.Players(20, 0),
+                    new StatusResponsePacket.MinecraftServerInfo.Version("Paper 1.19.2", 760)
+            );
+            StatusResponsePacket statusResponse = new StatusResponsePacket(0, info);
+            extraPacketSender.sendExtraPacketToMirrorClient(
+                    proxyConnection,
+                    statusResponse,
+                    proxyConnection.getMirrorProxyClient().getCompressionThreshold()
+                                                           );
         }
         return packet;
     }

@@ -5,23 +5,18 @@ import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.GameP
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
 import me.vasylkov.minecraftproxybridge.model.proxy.ClientType;
-import me.vasylkov.minecraftproxybridge.model.proxy.ProxyClient;
+import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class GameProfilePacketHandler implements PacketHandler {
     @Override
-    public Packet handlePacket(ProxyClient proxyClient, Packet packet, ClientType clientType) {
+    public Packet handlePacket(ProxyConnection proxyConnection, Packet packet, ClientType clientType) {
         GameProfilePacket gameProfilePacket = (GameProfilePacket) packet;
-
-        ProxyClient.ClientData clientData = proxyClient.getData();
-        ProxyClient.ClientState clientState = proxyClient.getState();
-
-        clientData.setUserName(gameProfilePacket.getUsername());
-        clientData.setUuid(gameProfilePacket.getUuid());
-        clientState.setMainProxyState(PacketState.PLAY);
-
+        proxyConnection.getMainProxyClient().setUserName(gameProfilePacket.getUsername());
+        proxyConnection.getMainProxyClient().setUuid(gameProfilePacket.getUuid());
+        proxyConnection.getMainProxyClient().setPacketState(PacketState.PLAY);
         return gameProfilePacket;
     }
 

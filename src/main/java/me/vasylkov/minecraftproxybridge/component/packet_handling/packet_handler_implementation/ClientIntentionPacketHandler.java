@@ -3,10 +3,10 @@ package me.vasylkov.minecraftproxybridge.component.packet_handling.packet_handle
 import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.proxy.ProxyConfiguration;
 import me.vasylkov.minecraftproxybridge.model.proxy.ClientType;
-import me.vasylkov.minecraftproxybridge.model.proxy.ProxyClient;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.ClientIntentionPacket;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
+import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,20 +15,19 @@ public class ClientIntentionPacketHandler implements PacketHandler{
     private final ProxyConfiguration proxyConfiguration;
 
     @Override
-    public Packet handlePacket(ProxyClient proxyClient, Packet packet, ClientType clientType) {
+    public Packet handlePacket(ProxyConnection proxyConnection, Packet packet, ClientType clientType) {
         ClientIntentionPacket clientIntentionPacket = (ClientIntentionPacket) packet;
         clientIntentionPacket.setServerAddress(proxyConfiguration.getProxyInfo().getTargetServerAddress());
 
-        ProxyClient.ClientState clientState = proxyClient.getState();
-
         int nextState = clientIntentionPacket.getNextState();
-        PacketState packetState = nextState == 1 ? PacketState.STATUS : PacketState.LOGIN;
+        PacketState newState = (nextState == 1) ? PacketState.STATUS : PacketState.LOGIN;
+
         if (clientType == ClientType.MAIN) {
-            clientState.setMainProxyState(packetState);
+            proxyConnection.getMainProxyClient().setPacketState(newState);
+        } else {
+            proxyConnection.getMirrorProxyClient().setPacketState(newState);
         }
-        else {
-            clientState.setMirrorProxyState(packetState);
-        }
+
         return clientIntentionPacket;
     }
 

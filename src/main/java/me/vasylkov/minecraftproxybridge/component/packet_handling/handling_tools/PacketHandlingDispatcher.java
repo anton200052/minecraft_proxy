@@ -2,8 +2,8 @@ package me.vasylkov.minecraftproxybridge.component.packet_handling.handling_tool
 
 import me.vasylkov.minecraftproxybridge.component.packet_handling.packet_handler_implementation.PacketHandler;
 import me.vasylkov.minecraftproxybridge.model.proxy.ClientType;
-import me.vasylkov.minecraftproxybridge.model.proxy.ProxyClient;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
+import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -18,10 +18,10 @@ public class PacketHandlingDispatcher {
         handlerList.forEach(handler -> handlers.put(handler.getHandledPacketClass(), handler));
     }
 
-    public Packet handlePacket(ProxyClient proxyClient, ClientType clientType, Packet packet) {
+    public Packet handlePacket(ProxyConnection proxyConnection, ClientType clientType, Packet packet) {
         PacketHandler handler = handlers.get(packet.getClass());
         if (handler != null) {
-            return handler.handlePacket(proxyClient, packet, clientType);
+            return handler.handlePacket(proxyConnection, packet, clientType);
         }
         return packet;
     }
