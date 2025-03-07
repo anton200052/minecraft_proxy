@@ -28,9 +28,9 @@ public class MainController {
 
     @GetMapping("/showProxyForm")
     public String showProxyForm(Model model) {
-        ProxyInfo proxyInfo = new ProxyInfo();
+        ProxyInfo proxyInfo = new ProxyInfo(25565, 25567, "", 25565);
         model.addAttribute("proxyInfo", proxyInfo);
-        return "enable_proxy_form";
+        return "proxy_form";
     }
 
     @PostMapping("/enable")

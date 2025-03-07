@@ -19,8 +19,6 @@ public class MainProxyConnector {
     private final Logger logger;
     private final ProxyConfiguration proxyConfiguration;
     private final PacketForwarder packetForwarder;
-    private final ConnectedProxyConnections connectedProxyConnections;
-
 
     @Async
     public void waitForClientConnectionAndStartDataForwarding(ServerSocket localServerSocket, String targetServerAddress, int targetServerPort) {
@@ -29,16 +27,12 @@ public class MainProxyConnector {
                 Socket clientSocket = localServerSocket.accept();
                 String hostAddress = clientSocket.getLocalAddress().getHostAddress();
 
-                if (!connectedProxyConnections.containsProxyConnection(hostAddress)) {
-                    logger.info("Подключен клиент: {}", hostAddress);
-                    Socket serverSocket = new Socket(targetServerAddress, targetServerPort);
+                logger.info("Подключен клиент: {}", hostAddress);
+                Socket serverSocket = new Socket(targetServerAddress, targetServerPort);
 
-                    ProxyConnection proxyConnection = new ProxyConnection(new ServerData(serverSocket), new MainProxyClient(clientSocket, hostAddress));
-                    connectedProxyConnections.addProxyClient(hostAddress, proxyConnection);
-
-                    packetForwarder.forwardDataFromMainClient(proxyConnection);
-                    packetForwarder.forwardDataToClients(proxyConnection);
-                }
+                ProxyConnection proxyConnection = ProxyConnection.builder().serverData(new ServerData(serverSocket)).mainProxyClient(new MainProxyClient(clientSocket, hostAddress)).build();
+                packetForwarder.forwardDataFromMainClient(proxyConnection);
+                packetForwarder.forwardDataToClients(proxyConnection);
             }
             catch (IOException e) {
                 logger.error("Ошибка при установлении соединения с клиентом: {}", e.getMessage());

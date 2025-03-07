@@ -18,19 +18,21 @@ public class MirroredProxyConnector {
     private final Logger logger;
     private final ProxyConfiguration proxyConfiguration;
     private final PacketForwarder packetForwarder;
-    private final ConnectedProxyConnections connectedProxyConnections;
 
     @Async
-    public void waitForClientConnectionAndStartDataForwarding(ServerSocket localServerSocket) throws IOException {
+    public void waitForClientConnectionAndStartDataForwarding(ServerSocket localServerSocket) {
         while (proxyConfiguration.isEnabled()) {
-            Socket clientSocket = localServerSocket.accept();
-            String clientHostAddress = clientSocket.getLocalAddress().getHostAddress();
-            logger.info("Подключен зеркальный клиент: {}", clientHostAddress);
+            try {
+                Socket clientSocket = localServerSocket.accept();
+                String clientHostAddress = clientSocket.getLocalAddress().getHostAddress();
+                logger.info("Подключен зеркальный клиент: {}", clientHostAddress);
 
-            ProxyConnection proxyConnection = connectedProxyConnections.getProxyConnection(clientHostAddress);
-            if (proxyConnection != null) {
-                proxyConnection.setMirrorProxyClient(new MirrorProxyClient(clientSocket, clientHostAddress));
+                ProxyConnection proxyConnection = ProxyConnection.builder().mirrorProxyClient(new MirrorProxyClient(clientSocket, clientHostAddress)).build();
+
                 packetForwarder.forwardDataFromMirrorClient(proxyConnection);
+            }
+            catch (IOException e) {
+                logger.error("Ошибка при установлении соединения с клиентом: {}", e.getMessage());
             }
         }
     }

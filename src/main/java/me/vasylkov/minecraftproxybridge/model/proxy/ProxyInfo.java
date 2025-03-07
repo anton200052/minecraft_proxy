@@ -10,7 +10,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProxyInfo {
-    private int proxyPort;
+    private int mainProxyPort;
+    private int mirrorProxyPort;
     private String targetServerAddress;
     private int targetServerPort;
 }

@@ -2,6 +2,7 @@ package me.vasylkov.minecraftproxybridge.component.packet_handling.packet_handle
 
 import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.packet_forwarding.ExtraPacketSender;
+import me.vasylkov.minecraftproxybridge.component.proxy.ConnectedProxyConnections;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.GameProfilePacket;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.LoginCompressionPacket;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.LoginStartPacket;
@@ -16,29 +17,36 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LoginStartPacketHandler implements PacketHandler {
     private final ExtraPacketSender extraPacketSender;
+    private final ConnectedProxyConnections connectedProxyConnections;
 
     @Override
     public Packet handlePacket(ProxyConnection proxyConnection, Packet packet, ClientType clientType) {
+        LoginStartPacket loginStartPacket = (LoginStartPacket) packet;
+
         if (clientType == ClientType.MIRROR) {
-            int mainCompression = proxyConnection.getMainProxyClient().getCompressionThreshold();
+            String username = loginStartPacket.getUsername();
+            if (connectedProxyConnections.containsProxyConnection(username)) {
+                MirrorProxyClient mirrorProxyClient = proxyConnection.getMirrorProxyClient();
 
-            MirrorProxyClient mirrorProxyClient = proxyConnection.getMirrorProxyClient();
-            mirrorProxyClient.setCompressionThreshold(mainCompression);
+                ProxyConnection mainProxyConnection = connectedProxyConnections.getProxyConnection(username);
+                mainProxyConnection.setMirrorProxyClient(mirrorProxyClient);
+                int mainCompression = mainProxyConnection.getMainProxyClient().getCompressionThreshold();
+                mirrorProxyClient.setCompressionThreshold(mainCompression);
 
-            LoginCompressionPacket loginCompressionPacket = new LoginCompressionPacket(3, mainCompression);
-            GameProfilePacket gameProfilePacket = new GameProfilePacket(
-                    2,
-                    proxyConnection.getMainProxyClient().getUuid(),
-                    proxyConnection.getMainProxyClient().getUserName(),
-                    new byte[]{0}
-            );
+                proxyConnection.setMainProxyClient(mainProxyConnection.getMainProxyClient());
+                proxyConnection.setServerData(mainProxyConnection.getServerData());
 
-            extraPacketSender.sendExtraPacketToMirrorClient(proxyConnection, loginCompressionPacket, 0);
-            extraPacketSender.sendExtraPacketToMirrorClient(proxyConnection, gameProfilePacket, mainCompression);
+                LoginCompressionPacket loginCompressionPacket = new LoginCompressionPacket(3, mainCompression);
+                GameProfilePacket gameProfilePacket = new GameProfilePacket(2, proxyConnection.getMainProxyClient().getUuid(), proxyConnection.getMainProxyClient().getUserName(), new byte[] {0});
 
-            mirrorProxyClient.setPacketState(PacketState.PLAY);
+                extraPacketSender.sendExtraPacketToMirrorClient(proxyConnection, loginCompressionPacket, 0);
+                extraPacketSender.sendExtraPacketToMirrorClient(proxyConnection, gameProfilePacket, mainCompression);
+
+                mirrorProxyClient.setPacketState(PacketState.PLAY);
+            }
         }
-        return packet;
+
+        return loginStartPacket;
     }
 
     @Override

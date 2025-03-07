@@ -10,30 +10,21 @@ import java.nio.charset.StandardCharsets;
 
 @Getter
 @Setter
-public class ClientChatPacket extends Packet {
+public abstract class ClientChatPacket extends Packet {
     private String message;
-    private long timestamp;
-    private long salt;
-    private byte[] remainingBytes;
 
-
-    public ClientChatPacket(int packetId, String message, long timestamp, long salt, byte[] remainingBytes) {
+    protected ClientChatPacket(int packetId, String message) {
         super(packetId);
         this.message = message;
-        this.timestamp = timestamp;
-        this.salt = salt;
-        this.remainingBytes = remainingBytes;
     }
 
     @Override
     public byte[] toRawData(PacketDataCodec packetDataCodec, ByteArrayHelper byteArrayHelper) throws IOException {
-        byte[] packetIdVarInt = packetDataCodec.encodeVarInt(getPacketId());
+        byte[] packetIdVarInt = super.toRawData(packetDataCodec, byteArrayHelper);
         byte[] messageBytes = this.message.getBytes(StandardCharsets.UTF_8);
         byte[] messageLengthVarInt = packetDataCodec.encodeVarInt(messageBytes.length);
         byte[] messageString = packetDataCodec.encodeString(this.message);
-        byte[] timeStampLong = packetDataCodec.encodeLong(this.timestamp);
-        byte[] saltLong = packetDataCodec.encodeLong(this.salt);
 
-        return byteArrayHelper.merge(packetIdVarInt, messageLengthVarInt, messageString, timeStampLong, saltLong, this.remainingBytes);
+        return byteArrayHelper.merge(packetIdVarInt, messageLengthVarInt, messageString);
     }
 }

@@ -1,44 +1,26 @@
 package me.vasylkov.minecraftproxybridge.component.packet_parsing.packet_parser_implementation;
 
-import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketDataCodec;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketDirection;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.ClientChatPacket;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
-import org.springframework.stereotype.Component;
+import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketDirection;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-@Component
-@RequiredArgsConstructor
-public class ClientChatPacketParser implements PacketParser {
-    private final PacketDataCodec packetDataCodec;
+public abstract class ClientChatPacketParser implements PacketParser {
+    protected final PacketDataCodec packetDataCodec;
 
-    @Override
-    public Packet parsePacket(int packetId, PacketDirection packetDirection, InputStream packetData) throws IOException {
-        int messageLength = packetDataCodec.readVarInt(packetData);
-        String message = packetDataCodec.readString(packetData, messageLength);
-        long timestamp = packetDataCodec.readLong(packetData);
-        long salt = packetDataCodec.readLong(packetData);
-        byte[] remainingBytes = packetData.readAllBytes();
-
-        return new ClientChatPacket(packetId, message, timestamp, salt, remainingBytes);
+    protected ClientChatPacketParser(PacketDataCodec packetDataCodec) {
+        this.packetDataCodec = packetDataCodec;
     }
 
     @Override
-    public PacketState getParsedPacketState() {
-        return PacketState.PLAY;
+    public Packet parsePacket(int packetId, PacketDirection direction, InputStream data) throws IOException {
+        int messageLength = packetDataCodec.readVarInt(data);
+        String message = packetDataCodec.readString(data, messageLength);
+
+        return parseSpecific(packetId, direction, data, message);
     }
 
-    @Override
-    public PacketDirection getParsedPacketDirection() {
-        return PacketDirection.CLIENT_TO_SERVER;
-    }
-
-    @Override
-    public int getParsedPacketId() {
-        return 5;
-    }
+    protected abstract Packet parseSpecific(int packetId, PacketDirection direction, InputStream data, String message) throws IOException;
 }

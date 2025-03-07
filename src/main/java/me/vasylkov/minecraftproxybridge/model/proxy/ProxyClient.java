@@ -2,6 +2,8 @@ package me.vasylkov.minecraftproxybridge.model.proxy;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.ServerVersion;
+import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketDirection;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
 
 import java.net.Socket;
@@ -10,6 +12,7 @@ import java.net.Socket;
 @Setter
 public abstract class ProxyClient {
     private PacketState packetState;
+    private ServerVersion serverVersion;
     private int compressionThreshold;
     private Socket socket;
     private String hostAddress;
@@ -21,5 +24,6 @@ public abstract class ProxyClient {
         this.hostAddress = hostAddress;
         this.socketLock = socketLock;
         packetState = PacketState.HANDSHAKE;
+        serverVersion = ServerVersion.UNKNOWN;
     }
 }

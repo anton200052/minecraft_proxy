@@ -9,7 +9,7 @@ import java.io.IOException;
 
 @Getter
 @Setter
-public class SynchronizePlayerPosPacket extends Packet{
+public class SynchronizePlayerPosPacket extends Packet {
     private double x;
     private double y;
     private double z;

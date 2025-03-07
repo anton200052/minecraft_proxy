@@ -2,6 +2,8 @@ package me.vasylkov.minecraftproxybridge.component.packet_parsing.packet_parser_
 
 import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketDataCodec;
+import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketParserKey;
+import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.ServerVersion;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketDirection;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.LoginStartPacket;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -28,17 +31,14 @@ public class LoginStartPacketParser implements PacketParser {
     }
 
     @Override
-    public PacketState getParsedPacketState() {
-        return PacketState.LOGIN;
-    }
-
-    @Override
-    public PacketDirection getParsedPacketDirection() {
-        return PacketDirection.CLIENT_TO_SERVER;
-    }
-
-    @Override
-    public int getParsedPacketId() {
-        return 0;
+    public List<PacketParserKey> getSupportedKeys() {
+        return List.of(
+                new PacketParserKey(
+                        ServerVersion.V1_19_2,
+                        0,
+                        PacketState.LOGIN,
+                        PacketDirection.CLIENT_TO_SERVER
+                )
+                      );
     }
 }

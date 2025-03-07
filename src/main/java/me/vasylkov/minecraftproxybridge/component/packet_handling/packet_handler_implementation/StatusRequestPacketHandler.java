@@ -17,14 +17,7 @@ public class StatusRequestPacketHandler implements PacketHandler {
     @Override
     public Packet handlePacket(ProxyConnection proxyConnection, Packet packet, ClientType clientType) {
         if (clientType == ClientType.MIRROR) {
-            StatusResponsePacket.MinecraftServerInfo info = new StatusResponsePacket.MinecraftServerInfo(
-                    false,
-                    false,
-                    new StatusResponsePacket.MinecraftServerInfo.Description("A Minecraft Server"),
-                    new StatusResponsePacket.MinecraftServerInfo.Players(20, 0),
-                    new StatusResponsePacket.MinecraftServerInfo.Version("Paper 1.19.2", 760)
-            );
-            StatusResponsePacket statusResponse = new StatusResponsePacket(0, info);
+            StatusResponsePacket statusResponse = getStatusResponsePacket();
             extraPacketSender.sendExtraPacketToMirrorClient(
                     proxyConnection,
                     statusResponse,
@@ -33,6 +26,18 @@ public class StatusRequestPacketHandler implements PacketHandler {
         }
         return packet;
     }
+
+    private static StatusResponsePacket getStatusResponsePacket() {
+        StatusResponsePacket.MinecraftServerInfo info = new StatusResponsePacket.MinecraftServerInfo(
+                false,
+                false,
+                new StatusResponsePacket.MinecraftServerInfo.Description("A Minecraft Server"),
+                new StatusResponsePacket.MinecraftServerInfo.Players(20, 0),
+                new StatusResponsePacket.MinecraftServerInfo.Version("Paper 1.19.2", 760)
+        );
+        return new StatusResponsePacket(0, info);
+    }
+
 
     @Override
     public Class<? extends Packet> getHandledPacketClass() {

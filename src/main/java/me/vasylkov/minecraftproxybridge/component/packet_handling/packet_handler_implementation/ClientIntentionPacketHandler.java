@@ -1,11 +1,14 @@
 package me.vasylkov.minecraftproxybridge.component.packet_handling.packet_handler_implementation;
 
 import lombok.RequiredArgsConstructor;
+import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.ServerVersion;
 import me.vasylkov.minecraftproxybridge.component.proxy.ProxyConfiguration;
 import me.vasylkov.minecraftproxybridge.model.proxy.ClientType;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.ClientIntentionPacket;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
+import me.vasylkov.minecraftproxybridge.model.proxy.MainProxyClient;
+import me.vasylkov.minecraftproxybridge.model.proxy.MirrorProxyClient;
 import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +25,17 @@ public class ClientIntentionPacketHandler implements PacketHandler{
         int nextState = clientIntentionPacket.getNextState();
         PacketState newState = (nextState == 1) ? PacketState.STATUS : PacketState.LOGIN;
 
+        MainProxyClient mainProxyClient = proxyConnection.getMainProxyClient();
+        MirrorProxyClient mirrorProxyClient = proxyConnection.getMirrorProxyClient();
+
+        ServerVersion serverVersion = ServerVersion.fromProtocolVersion(clientIntentionPacket.getProtocolVersion());
+
         if (clientType == ClientType.MAIN) {
-            proxyConnection.getMainProxyClient().setPacketState(newState);
+            mainProxyClient.setPacketState(newState);
+            mainProxyClient.setServerVersion(serverVersion);
         } else {
-            proxyConnection.getMirrorProxyClient().setPacketState(newState);
+            mirrorProxyClient.setPacketState(newState);
+            mirrorProxyClient.setServerVersion(serverVersion);
         }
 
         return clientIntentionPacket;

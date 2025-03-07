@@ -5,7 +5,6 @@ import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketDirection
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.UnsignedPacket;
-import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
@@ -19,18 +18,19 @@ public class PacketParserDispatcher {
     private final PacketDataCodec packetDataCodec;
     private final Map<PacketParserKey, PacketParser> parsers = new HashMap<>();
 
-    public PacketParserDispatcher(List<PacketParser> parserList, Logger logger, PacketDataCodec packetDataCodec) {
-        parserList.forEach(parser -> {
-            PacketParserKey key = new PacketParserKey(parser.getParsedPacketState(), parser.getParsedPacketId(), parser.getParsedPacketDirection());
-            parsers.put(key, parser);
-        });
+    public PacketParserDispatcher(List<PacketParser> parserList, PacketDataCodec packetDataCodec) {
+        for (PacketParser parser : parserList) {
+            for (PacketParserKey key : parser.getSupportedKeys()) {
+                parsers.put(key, parser);
+            }
+        }
         this.packetDataCodec = packetDataCodec;
     }
 
-    public Packet parsePacket(PacketState packetState, PacketDirection packetDirection, byte[] dataBuffer) throws IOException {
+    public Packet parsePacket(ServerVersion serverVersion, PacketState packetState, PacketDirection packetDirection, byte[] dataBuffer) throws IOException {
         ByteArrayInputStream packetData = new ByteArrayInputStream(dataBuffer);
         int packetId = packetDataCodec.readVarInt(packetData);
-        PacketParserKey key = new PacketParserKey(packetState, packetId, packetDirection);
+        PacketParserKey key = new PacketParserKey(serverVersion, packetId, packetState, packetDirection);
         PacketParser parser = parsers.get(key);
         if (parser != null) {
             return parser.parsePacket(packetId, packetDirection, packetData);

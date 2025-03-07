@@ -2,10 +2,7 @@ package me.vasylkov.minecraftproxybridge.component.packet_forwarding;
 
 import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.packet_handling.handling_tools.PacketHandlingDispatcher;
-import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketDataCodec;
-import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketEncoder;
-import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketParserDispatcher;
-import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.ZlibCompressor;
+import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.*;
 import me.vasylkov.minecraftproxybridge.component.proxy.ConnectedProxyConnections;
 import me.vasylkov.minecraftproxybridge.component.proxy.MirroredProxyConnector;
 import me.vasylkov.minecraftproxybridge.component.proxy.ProxyConfiguration;
@@ -122,12 +119,16 @@ public class PacketForwarder {
         if (dataLength > 0) {
             buffer = zlibCompressor.decompressZlib(buffer, dataLength);
         }
+
+        ServerVersion serverVersion = getServerVersion(proxyConnection, clientType);
         PacketState state = getPacketState(proxyConnection, clientType);
-        Packet parsedPacket = packetParserDispatcher.parsePacket(state, packetDirection, buffer);
+        Packet parsedPacket = packetParserDispatcher.parsePacket(serverVersion, state, packetDirection, buffer);
         Packet handledPacket = packetHandlingDispatcher.handlePacket(proxyConnection, clientType, parsedPacket);
+
         if (handledPacket == null) {
             return new byte[0];
         }
+
         byte[] packetData = packetEncoder.encodePacket(handledPacket, compressionThreshold);
         packetHelper.printPacketData(packetData, packetDirection, state, clientType);
         return packetData;
@@ -139,5 +140,9 @@ public class PacketForwarder {
 
     private PacketState getPacketState(ProxyConnection proxyConnection, ClientType clientType) {
         return clientType == ClientType.MAIN ? proxyConnection.getMainProxyClient().getPacketState() : proxyConnection.getMirrorProxyClient().getPacketState();
+    }
+
+    private ServerVersion getServerVersion(ProxyConnection proxyConnection, ClientType clientType) {
+        return clientType == ClientType.MAIN ? proxyConnection.getMainProxyClient().getServerVersion() : proxyConnection.getMirrorProxyClient().getServerVersion();
     }
 }

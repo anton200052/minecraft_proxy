@@ -1,0 +1,101 @@
+body {
+    background: linear-gradient(135deg, #0B0B0B, #001F3F);
+    background-size: 400% 400%;
+    animation: gradientMove 8s infinite alternate ease-in-out;
+    color: #f2f2f2;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Arial', sans-serif;
+}
+
+@keyframes gradientMove {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+/* Карточка формы */
+.custom-card {
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    border: 1px solid #0D6EFD;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 0 20px rgba(13, 110, 253, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 400px;
+}
+.custom-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(13, 110, 253, 0.8);
+}
+
+/* Заголовок */
+.form-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* Поля ввода */
+.form-control {
+    background-color: rgba(0, 0, 0, 0.75);
+    border: 1px solid #0D6EFD;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+.form-control:focus {
+    border-color: #0A58CA;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.8);
+    background-color: rgba(0, 0, 0, 0.85);
+}
+
+/* Переопределение автозаполнения Chrome */
+.form-control:-webkit-autofill,
+.form-control:-webkit-autofill:hover,
+.form-control:-webkit-autofill:focus,
+.form-control:-webkit-autofill:active {
+    -webkit-text-fill-color: #fff !important;
+    -webkit-box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.85) inset !important;
+}
+
+/* Кнопки */
+.btn-custom {
+    width: 100%;
+    font-size: 1.2rem;
+    padding: 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.btn-enable {
+    background-color: #0D6EFD;
+    border-color: #0D6EFD;
+    color: #FFF;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.8);
+}
+.btn-enable:hover {
+    background-color: #0A58CA;
+    border-color: #0A58CA;
+    box-shadow: 0 0 20px rgba(13, 110, 253, 1);
+}
+
+.btn-back {
+    background-color: #FF3B3B;
+    border-color: #FF3B3B;
+    color: #FFF;
+    box-shadow: 0 0 10px rgba(255, 59, 59, 0.8);
+}
+.btn-back:hover {
+    background-color: #E12D2D;
+    border-color: #E12D2D;
+    box-shadow: 0 0 20px rgba(255, 59, 59, 1);
+}

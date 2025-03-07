@@ -16,5 +16,7 @@ import java.io.IOException;
 public abstract class Packet {
     private int packetId;
 
-    public abstract byte[] toRawData(PacketDataCodec packetDataCodec, ByteArrayHelper byteArrayHelper) throws IOException;
+    public byte[] toRawData(PacketDataCodec packetDataCodec, ByteArrayHelper byteArrayHelper) throws IOException {
+        return packetDataCodec.encodeVarInt(getPacketId());
+    }
 }

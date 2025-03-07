@@ -2,6 +2,8 @@ package me.vasylkov.minecraftproxybridge.component.packet_parsing.packet_parser_
 
 import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketDataCodec;
+import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketParserKey;
+import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.ServerVersion;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketDirection;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.ClientIntentionPacket;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -28,17 +31,14 @@ public class ClientIntentionPacketParser implements PacketParser {
     }
 
     @Override
-    public PacketState getParsedPacketState() {
-        return PacketState.HANDSHAKE;
-    }
-
-    @Override
-    public PacketDirection getParsedPacketDirection() {
-        return PacketDirection.CLIENT_TO_SERVER;
-    }
-
-    @Override
-    public int getParsedPacketId() {
-        return 0;
+    public List<PacketParserKey> getSupportedKeys() {
+        return List.of(
+                new PacketParserKey(
+                        ServerVersion.UNKNOWN,
+                        0,
+                        PacketState.HANDSHAKE,
+                        PacketDirection.CLIENT_TO_SERVER
+                )
+                      );
     }
 }
