@@ -1,6 +1,7 @@
 package me.vasylkov.minecraftproxybridge.component.packet_handling.handling_tools;
 
 import me.vasylkov.minecraftproxybridge.component.packet_handling.packet_handler_implementation.PacketHandler;
+import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.ServerVersion;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.ClientChatPacket;
 import me.vasylkov.minecraftproxybridge.model.proxy.ClientType;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;

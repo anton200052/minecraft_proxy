@@ -9,7 +9,7 @@ import java.io.IOException;
 
 @Getter
 @Setter
-public class SynchronizePlayerPosPacket extends Packet {
+public abstract class SynchronizePlayerPosPacket extends Packet {
     private double x;
     private double y;
     private double z;
@@ -17,9 +17,8 @@ public class SynchronizePlayerPosPacket extends Packet {
     private float pitch;
     private byte relativeFlags;
     private int teleportId;
-    private boolean dismountVehicle;
 
-    public SynchronizePlayerPosPacket(int packetId, double x, double y, double z, float yaw, float pitch, byte relativeFlags, int teleportId, boolean dismountVehicle) {
+    protected SynchronizePlayerPosPacket(int packetId, double x, double y, double z, float yaw, float pitch, byte relativeFlags, int teleportId) {
         super(packetId);
         this.x = x;
         this.y = y;
@@ -28,7 +27,6 @@ public class SynchronizePlayerPosPacket extends Packet {
         this.pitch = pitch;
         this.relativeFlags = relativeFlags;
         this.teleportId = teleportId;
-        this.dismountVehicle = dismountVehicle;
     }
 
     @Override
@@ -41,8 +39,7 @@ public class SynchronizePlayerPosPacket extends Packet {
         byte[] pitchFloat  = packetDataCodec.encodeFloat(pitch);
         byte[] relativeFlagsByte = packetDataCodec.encodeByte(relativeFlags);
         byte[] teleportIdVarInt = packetDataCodec.encodeVarInt(teleportId);
-        byte[] dismountVehicleBoolean = packetDataCodec.encodeBoolean(dismountVehicle);
 
-        return byteArrayHelper.merge(packetIdVarInt, xDouble, yDouble, zDouble, yawFloat, pitchFloat, relativeFlagsByte, teleportIdVarInt, dismountVehicleBoolean);
+        return byteArrayHelper.merge(packetIdVarInt, xDouble, yDouble, zDouble, yawFloat, pitchFloat, relativeFlagsByte, teleportIdVarInt);
     }
 }

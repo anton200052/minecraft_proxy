@@ -1,46 +1,26 @@
 package me.vasylkov.minecraftproxybridge.component.packet_handling.packet_handler_implementation;
 
-import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.packet_forwarding.ExtraPacketSender;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.StatusRequestPacket;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.StatusResponsePacket;
 import me.vasylkov.minecraftproxybridge.model.proxy.ClientType;
 import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
-import org.springframework.stereotype.Component;
+import me.vasylkov.minecraftproxybridge.model.proxy.ServerData;
 
-@Component
-@RequiredArgsConstructor
-public class StatusRequestPacketHandler implements PacketHandler {
-    private final ExtraPacketSender extraPacketSender;
+public abstract class StatusRequestPacketHandler implements PacketHandler {
+    protected final ExtraPacketSender extraPacketSender;
+
+    protected StatusRequestPacketHandler(ExtraPacketSender extraPacketSender) {
+        this.extraPacketSender = extraPacketSender;
+    }
 
     @Override
     public Packet handlePacket(ProxyConnection proxyConnection, Packet packet, ClientType clientType) {
+        ServerData serverData = proxyConnection.getServerData();
+
         if (clientType == ClientType.MIRROR) {
-            StatusResponsePacket statusResponse = getStatusResponsePacket();
-            extraPacketSender.sendExtraPacketToMirrorClient(
-                    proxyConnection,
-                    statusResponse,
-                    proxyConnection.getMirrorProxyClient().getCompressionThreshold()
-                                                           );
+            /*sendSpecificStatusResponsePacket(proxyConnection, serverData.getCompressionThreshold());*/
         }
         return packet;
     }
-
-    private static StatusResponsePacket getStatusResponsePacket() {
-        StatusResponsePacket.MinecraftServerInfo info = new StatusResponsePacket.MinecraftServerInfo(
-                false,
-                false,
-                new StatusResponsePacket.MinecraftServerInfo.Description("A Minecraft Server"),
-                new StatusResponsePacket.MinecraftServerInfo.Players(20, 0),
-                new StatusResponsePacket.MinecraftServerInfo.Version("Paper 1.19.2", 760)
-        );
-        return new StatusResponsePacket(0, info);
-    }
-
-
-    @Override
-    public Class<? extends Packet> getHandledPacketClass() {
-        return StatusRequestPacket.class;
-    }
+    public abstract void sendSpecificStatusResponsePacket(ProxyConnection proxyConnection, int compressionThreshold);
 }

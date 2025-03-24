@@ -13,6 +13,6 @@ public class MainProxyClient extends ProxyClient {
     private UUID uuid;
 
     public MainProxyClient(Socket socket, String hostAddress) {
-        super(socket, hostAddress, new Object());
+        super(socket, hostAddress);
     }
 }

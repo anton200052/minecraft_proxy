@@ -12,14 +12,12 @@ import java.nio.charset.StandardCharsets;
 
 @Getter
 @Setter
-public class SystemChatMessagePacket extends Packet {
+public abstract class SystemChatMessagePacket extends Packet {
     private ChatMessage chatMessage;
-    private boolean overlay;
 
-    public SystemChatMessagePacket(int packetId, ChatMessage chatMessage, boolean overlay) {
+    protected SystemChatMessagePacket(int packetId, ChatMessage chatMessage) {
         super(packetId);
         this.chatMessage = chatMessage;
-        this.overlay = overlay;
     }
 
     @Override
@@ -31,10 +29,8 @@ public class SystemChatMessagePacket extends Packet {
         byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
         byte[] messageLengthVarInt = packetDataCodec.encodeVarInt(messageBytes.length);
         byte[] messageString = packetDataCodec.encodeString(message);
-        byte[] overlayBoolean = packetDataCodec.encodeBoolean(this.overlay);
 
-
-        return byteArrayHelper.merge(packetIdVarInt, messageLengthVarInt, messageString, overlayBoolean);
+        return byteArrayHelper.merge(packetIdVarInt, messageLengthVarInt, messageString);
     }
 
 }

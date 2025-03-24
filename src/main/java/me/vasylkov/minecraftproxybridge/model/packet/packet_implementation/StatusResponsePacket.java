@@ -12,10 +12,10 @@ import java.io.IOException;
 
 @Getter
 @Setter
-public class StatusResponsePacket extends Packet {
+public abstract class StatusResponsePacket extends Packet {
     private MinecraftServerInfo minecraftServerInfo;
 
-    public StatusResponsePacket(int packetId, MinecraftServerInfo minecraftServerInfo) {
+    protected StatusResponsePacket(int packetId, MinecraftServerInfo minecraftServerInfo) {
         super(packetId);
         this.minecraftServerInfo = minecraftServerInfo;
     }

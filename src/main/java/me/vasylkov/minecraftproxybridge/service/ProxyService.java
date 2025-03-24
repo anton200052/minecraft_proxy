@@ -41,7 +41,7 @@ public class ProxyService {
         logger.info("Starting proxy server on port {}", proxyInfo.getMainProxyPort());
 
         mainProxyConnector.waitForClientConnectionAndStartDataForwarding(localServerSocket, proxyInfo.getTargetServerAddress(), proxyInfo.getTargetServerPort());
-        mirroredProxyConnector.waitForClientConnectionAndStartDataForwarding(mirrorServerSocket);
+        mirroredProxyConnector.waitForClientConnectionAndStartDataForwarding(mirrorServerSocket, proxyInfo.getTargetServerAddress(), proxyInfo.getTargetServerPort());
     }
 
     public void disableProxy() throws IOException {

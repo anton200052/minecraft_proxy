@@ -12,9 +12,9 @@ public class MirrorProxyClient extends ProxyClient {
     private boolean forwardingFromMirrorProxyAllowed;
 
     public MirrorProxyClient(Socket socket, String hostAddress) {
-        super(socket, hostAddress, new Object());
+        super(socket, hostAddress);
 
-        forwardingFromMirrorProxyAllowed = false;
-        forwardingToMirrorProxyAllowed = false;
+        forwardingFromMirrorProxyAllowed = true;
+        forwardingToMirrorProxyAllowed = true;
     }
 }

@@ -9,10 +9,10 @@ import java.io.IOException;
 
 @Getter
 @Setter
-public class PingRequestPacket extends Packet {
+public abstract class PingRequestPacket extends Packet {
     private long timestamp;
 
-    public PingRequestPacket(int packetId, long timestamp) {
+    protected PingRequestPacket(int packetId, long timestamp) {
         super(packetId);
         this.timestamp = timestamp;
     }

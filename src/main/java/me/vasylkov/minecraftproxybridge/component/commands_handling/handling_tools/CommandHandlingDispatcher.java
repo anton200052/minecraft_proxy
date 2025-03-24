@@ -1,6 +1,7 @@
 package me.vasylkov.minecraftproxybridge.component.commands_handling.handling_tools;
 
 import me.vasylkov.minecraftproxybridge.component.commands_handling.handler_impl.CommandHandler;
+import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.ServerVersion;
 import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
 import org.springframework.stereotype.Component;
 
@@ -10,14 +11,16 @@ import java.util.Map;
 
 @Component
 public class CommandHandlingDispatcher {
-    private final Map<String, CommandHandler> handlers = new HashMap<>();
+    private final Map<CommandHandlerKey, CommandHandler> handlers = new HashMap<>();
 
     public CommandHandlingDispatcher(List<CommandHandler> handlerList) {
-        handlerList.forEach(handler -> handlers.put(handler.getHandledCommand(), handler));
+        handlerList.forEach(handler -> handlers.put(handler.getHandledCommandKey(), handler));
     }
 
     public void handleCommand(ProxyConnection proxyConnection, String command, String[] args) {
-        CommandHandler handler = handlers.get(command);
+        ServerVersion serverVersion = proxyConnection.getServerData().getServerVersion();
+        CommandHandlerKey commandHandlerKey = new CommandHandlerKey(command, serverVersion);
+        CommandHandler handler = handlers.get(commandHandlerKey);
 
         if (handler != null) {
             handler.handleCommand(proxyConnection, command, args);

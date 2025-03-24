@@ -6,6 +6,7 @@ import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.GameP
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
 import me.vasylkov.minecraftproxybridge.model.proxy.ClientType;
+import me.vasylkov.minecraftproxybridge.model.proxy.MainProxyClient;
 import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
 import org.springframework.stereotype.Component;
 
@@ -21,19 +22,28 @@ public class GameProfilePacketHandler implements PacketHandler {
         if (clientType == ClientType.MAIN) {
             GameProfilePacket gameProfilePacket = (GameProfilePacket) packet;
 
+            MainProxyClient mainProxyClient = proxyConnection.getMainProxyClient();
             String username = gameProfilePacket.getUsername();
             UUID uuid = gameProfilePacket.getUuid();
 
-            if (!connectedProxyConnections.containsProxyConnection(username)) {
-                connectedProxyConnections.addProxyClient(username, proxyConnection);
-            }
+            addAvailableClient(username, proxyConnection);
+            updateMainClientData(mainProxyClient, username, uuid);
 
-            proxyConnection.getMainProxyClient().setUserName(username);
-            proxyConnection.getMainProxyClient().setUuid(uuid);
-            proxyConnection.getMainProxyClient().setPacketState(PacketState.PLAY);
             return gameProfilePacket;
         }
         return packet;
+    }
+
+    private void addAvailableClient(String username, ProxyConnection proxyConnection) {
+        if (!connectedProxyConnections.containsProxyConnection(username)) {
+            connectedProxyConnections.addProxyClient(username, proxyConnection);
+        }
+    }
+
+    private void updateMainClientData(MainProxyClient mainProxyClient, String username, UUID uuid) {
+        mainProxyClient.setUserName(username);
+        mainProxyClient.setUuid(uuid);
+        mainProxyClient.setPacketState(PacketState.PLAY);
     }
 
     @Override

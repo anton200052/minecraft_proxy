@@ -9,10 +9,10 @@ import java.io.IOException;
 
 @Getter
 @Setter
-public class LoginPlayPacket extends Packet {
+public abstract class LoginPlayPacket extends Packet {
     private byte[] bytes; //todo: parse all packet fields include NBT
 
-    public LoginPlayPacket(int packetId, byte[] bytes) {
+    protected LoginPlayPacket(int packetId, byte[] bytes) {
         super(packetId);
         this.bytes = bytes;
     }

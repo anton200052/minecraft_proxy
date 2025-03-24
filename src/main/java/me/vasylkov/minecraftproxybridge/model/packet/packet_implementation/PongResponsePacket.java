@@ -9,10 +9,10 @@ import java.io.IOException;
 
 @Getter
 @Setter
-public class PongResponsePacket extends Packet {
+public abstract class PongResponsePacket extends Packet {
     private long timestamp;
 
-    public PongResponsePacket(int packetId, long timestamp) {
+    protected PongResponsePacket(int packetId, long timestamp) {
         super(packetId);
         this.timestamp = timestamp;
     }

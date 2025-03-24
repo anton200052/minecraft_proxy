@@ -1,44 +1,27 @@
 package me.vasylkov.minecraftproxybridge.component.packet_parsing.packet_parser_implementation;
 
-import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketDataCodec;
-import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketParserKey;
-import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.ServerVersion;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketDirection;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.LoginStartPacket;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
-import org.springframework.stereotype.Component;
+import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketDirection;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.UUID;
 
-@Component
-@RequiredArgsConstructor
-public class LoginStartPacketParser implements PacketParser {
-    private final PacketDataCodec packetDataCodec;
+public abstract class LoginStartPacketParser implements PacketParser {
+    protected final PacketDataCodec packetDataCodec;
+
+    protected LoginStartPacketParser(PacketDataCodec packetDataCodec) {
+        this.packetDataCodec = packetDataCodec;
+    }
 
     @Override
     public Packet parsePacket(int packetId, PacketDirection packetDirection, InputStream packetData) throws IOException {
         int usernameLength = packetDataCodec.readVarInt(packetData);
         String username = packetDataCodec.readString(packetData, usernameLength);
-        boolean hasSigData = packetDataCodec.readBoolean(packetData);
-        boolean hasUUID = packetDataCodec.readBoolean(packetData);
-        UUID uuid = packetDataCodec.readUUID(packetData);
-        return new LoginStartPacket(packetId, uuid, username);
+
+        return parseSpecific(packetId, packetDirection, packetData, username);
     }
 
-    @Override
-    public List<PacketParserKey> getSupportedKeys() {
-        return List.of(
-                new PacketParserKey(
-                        ServerVersion.V1_19_2,
-                        0,
-                        PacketState.LOGIN,
-                        PacketDirection.CLIENT_TO_SERVER
-                )
-                      );
-    }
+    protected abstract Packet parseSpecific(int packetId, PacketDirection direction, InputStream data, String username) throws IOException;
+
 }

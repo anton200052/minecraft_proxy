@@ -9,13 +9,13 @@ import java.io.IOException;
 
 @Getter
 @Setter
-public class MovePlayerPosPacket extends Packet {
+public abstract class MovePlayerPosPacket extends Packet {
     private double x;
     private double y;
     private double z;
     private boolean onGround;
 
-    public MovePlayerPosPacket(int packetId, double x, double y, double z, boolean onGround) {
+    protected MovePlayerPosPacket(int packetId, double x, double y, double z, boolean onGround) {
         super(packetId);
         this.x = x;
         this.y = y;

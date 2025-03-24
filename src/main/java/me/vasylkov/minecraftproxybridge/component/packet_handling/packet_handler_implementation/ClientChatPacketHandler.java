@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.commands_handling.handling_tools.CommandHandlingDispatcher;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.ClientChatPacket;
 import me.vasylkov.minecraftproxybridge.model.proxy.ClientType;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.ClientChatPacketV760;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
 import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
 import org.springframework.stereotype.Component;

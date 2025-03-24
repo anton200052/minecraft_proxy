@@ -1,23 +1,19 @@
 package me.vasylkov.minecraftproxybridge.component.packet_parsing.packet_parser_implementation;
 
-import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketDataCodec;
-import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.PacketParserKey;
-import me.vasylkov.minecraftproxybridge.component.packet_parsing.parsing_core.ServerVersion;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.MovePlayerPosRotPacket;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketDirection;
-import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.PacketState;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
-@Component
-@RequiredArgsConstructor
-public class MovePlayerPosRotPacketParser implements PacketParser {
-    private final PacketDataCodec packetDataCodec;
+public abstract class MovePlayerPosRotPacketParser implements PacketParser {
+
+    protected final PacketDataCodec packetDataCodec;
+
+    protected MovePlayerPosRotPacketParser(PacketDataCodec packetDataCodec) {
+        this.packetDataCodec = packetDataCodec;
+    }
 
     @Override
     public Packet parsePacket(int packetId, PacketDirection packetDirection, InputStream packetData) throws IOException {
@@ -28,18 +24,11 @@ public class MovePlayerPosRotPacketParser implements PacketParser {
         float pitch = packetDataCodec.readFloat(packetData);
         boolean onGround = packetDataCodec.readBoolean(packetData);
 
-        return new MovePlayerPosRotPacket(packetId, x, y, z, yaw, pitch, onGround);
+        return parseSpecific(packetId, packetDirection, x, y, z, yaw, pitch, onGround);
     }
 
-    @Override
-    public List<PacketParserKey> getSupportedKeys() {
-        return List.of(
-                new PacketParserKey(
-                        ServerVersion.V1_19_2,
-                        21,
-                        PacketState.PLAY,
-                        PacketDirection.CLIENT_TO_SERVER
-                )
-                      );
-    }
+    protected abstract Packet parseSpecific(int packetId, PacketDirection packetDirection,
+                                            double x, double y, double z,
+                                            float yaw, float pitch, boolean onGround) throws IOException;
 }
+

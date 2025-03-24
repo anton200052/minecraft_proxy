@@ -9,7 +9,7 @@ import java.io.IOException;
 
 @Getter
 @Setter
-public class MovePlayerPosRotPacket extends Packet {
+public abstract class MovePlayerPosRotPacket extends Packet {
     private double x;
     private double y;
     private double z;
@@ -17,7 +17,7 @@ public class MovePlayerPosRotPacket extends Packet {
     private float pitch;
     private boolean onGround;
 
-    public MovePlayerPosRotPacket(int packetId, double x, double y, double z, float yaw, float pitch, boolean onGround) {
+    protected MovePlayerPosRotPacket(int packetId, double x, double y, double z, float yaw, float pitch, boolean onGround) {
         super(packetId);
         this.x = x;
         this.y = y;

@@ -9,10 +9,10 @@ import java.io.IOException;
 
 @Getter
 @Setter
-public class LoginCompressionPacket extends Packet {
+public abstract class LoginCompressionPacket extends Packet {
     private int compression;
 
-    public LoginCompressionPacket(int packetId, int compression) {
+    protected LoginCompressionPacket(int packetId, int compression) {
         super(packetId);
         this.compression = compression;
     }
@@ -23,10 +23,5 @@ public class LoginCompressionPacket extends Packet {
         byte[] compressionVarInt = packetDataCodec.encodeVarInt(this.compression);
 
         return byteArrayHelper.merge(packetIdVarInt, compressionVarInt);
-    }
-
-    @Override
-    public String toString() {
-        return "LoginCompressionPacket{" + "compression=" + compression + '}';
     }
 }
