@@ -45,14 +45,18 @@ public class PacketForwarder {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
+            String clientIdentifier = getClientIdentifier(proxyConnection);
+            logger.error("Пересылка пакетов от основного клиента ({}), отключена с причиной: {}", clientIdentifier, e.getMessage());
         }
         finally {
-            connectedProxyConnections.removeProxyConnection(proxyConnection.getMainProxyClient().getUserName());
-            MirrorProxyClient mirrorProxyClient = proxyConnection.getMirrorProxyClient();
+            String userName = proxyConnection.getMainProxyClient().getUserName();
+            if (userName != null) {
+                connectedProxyConnections.removeProxyConnection(userName);
+                MirrorProxyClient mirrorProxyClient = proxyConnection.getMirrorProxyClient();
 
-            if (mirrorProxyClient != null) {
-                mirrorProxyClient.setForwardingFromMirrorProxyAllowed(true);
+                if (mirrorProxyClient != null) {
+                    mirrorProxyClient.setForwardingFromMirrorProxyAllowed(true);
+                }
             }
         }
     }
@@ -72,7 +76,8 @@ public class PacketForwarder {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
+            String clientIdentifier = getClientIdentifier(proxyConnection);
+            logger.error("Пересылка пакетов от зеркального клиента ({}), отключена с причиной: {}", clientIdentifier, e.getMessage());
         }
         finally {
             proxyConnection.setMirrorProxyClient(null);
@@ -98,8 +103,8 @@ public class PacketForwarder {
             }
         }
         catch (Exception e) {
-            logger.warn("Временная пересылка пакетов от сервера зеркальному клиенту отключена с причиной: {}", e.getMessage());
-            e.printStackTrace();
+            String clientIdentifier = getClientIdentifier(proxyConnection);
+            logger.error("Первичная пересылка пакетов от сервера клиенту ({}), отключена с причиной: {}", clientIdentifier, e.getMessage());
         }
     }
 
@@ -125,8 +130,26 @@ public class PacketForwarder {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
+            String clientIdentifier = getClientIdentifier(proxyConnection);
+            logger.error("Пересылка пакетов от сервера клиентам ({}), отключена с причиной: {}", clientIdentifier, e.getMessage());
         }
+    }
+
+    private static String getClientIdentifier(ProxyConnection proxyConnection) {
+        String clientIdentifier = null;
+        if (proxyConnection.getMainProxyClient() != null) {
+            String username = proxyConnection.getMainProxyClient().getUserName();
+            if (username != null) {
+                clientIdentifier = proxyConnection.getMainProxyClient().getUserName();
+            }
+            else {
+                clientIdentifier = proxyConnection.getMainProxyClient().getHostAddress();
+            }
+        }
+        else if (proxyConnection.getMirrorProxyClient() != null) {
+            clientIdentifier = proxyConnection.getMirrorProxyClient().getHostAddress();
+        }
+        return clientIdentifier;
     }
 
     private byte[] processPacket(InputStream input, PacketDirection packetDirection, ClientType clientType, ProxyConnection proxyConnection) throws IOException {
@@ -155,7 +178,7 @@ public class PacketForwarder {
         }
 
         byte[] packetData = packetEncoder.encodePacket(handledPacket, compressionThreshold);
-        packetHelper.printPacketData(packetData, packetDirection, state, clientType);
+        /*packetHelper.printPacketData(packetData, packetDirection, state, clientType);*/
         return packetData;
     }
 

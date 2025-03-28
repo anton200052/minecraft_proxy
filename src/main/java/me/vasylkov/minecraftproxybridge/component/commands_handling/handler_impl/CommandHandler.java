@@ -3,7 +3,9 @@ package me.vasylkov.minecraftproxybridge.component.commands_handling.handler_imp
 import me.vasylkov.minecraftproxybridge.component.commands_handling.handling_tools.CommandHandlerKey;
 import me.vasylkov.minecraftproxybridge.model.proxy.ProxyConnection;
 
+import java.util.List;
+
 public interface CommandHandler {
     void handleCommand(ProxyConnection proxyConnection, String command, String[] args);
-    CommandHandlerKey getHandledCommandKey();
+    List<CommandHandlerKey> getHandledCommandKeys();
 }

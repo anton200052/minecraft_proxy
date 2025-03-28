@@ -14,7 +14,11 @@ public class CommandHandlingDispatcher {
     private final Map<CommandHandlerKey, CommandHandler> handlers = new HashMap<>();
 
     public CommandHandlingDispatcher(List<CommandHandler> handlerList) {
-        handlerList.forEach(handler -> handlers.put(handler.getHandledCommandKey(), handler));
+        for (CommandHandler handler : handlerList) {
+            for (CommandHandlerKey commandHandlerKey : handler.getHandledCommandKeys()) {
+                handlers.put(commandHandlerKey, handler);
+            }
+        }
     }
 
     public void handleCommand(ProxyConnection proxyConnection, String command, String[] args) {

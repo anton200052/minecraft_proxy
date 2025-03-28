@@ -1,5 +1,6 @@
 package me.vasylkov.minecraftproxybridge.service;
 
+import jakarta.annotation.PreDestroy;
 import me.vasylkov.minecraftproxybridge.component.proxy.MainProxyConnector;
 import me.vasylkov.minecraftproxybridge.component.proxy.MirroredProxyConnector;
 import me.vasylkov.minecraftproxybridge.component.proxy.ProxyConfiguration;
@@ -12,7 +13,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 @Service
-public class ProxyService {
+public class ProxyServiceImp implements ProxyService {
     private final Logger logger;
     private final ProxyConfiguration proxyConfiguration;
     private final MainProxyConnector mainProxyConnector;
@@ -21,13 +22,14 @@ public class ProxyService {
     private ServerSocket localServerSocket;
     private ServerSocket mirrorServerSocket;
 
-    public ProxyService(Logger logger, ProxyConfiguration proxyConfiguration, MainProxyConnector mainProxyConnector, MirroredProxyConnector mirroredProxyConnector) {
+    public ProxyServiceImp(Logger logger, ProxyConfiguration proxyConfiguration, MainProxyConnector mainProxyConnector, MirroredProxyConnector mirroredProxyConnector) {
         this.logger = logger;
         this.proxyConfiguration = proxyConfiguration;
         this.mainProxyConnector = mainProxyConnector;
         this.mirroredProxyConnector = mirroredProxyConnector;
     }
 
+    @Override
     public void enableProxy(ProxyInfo proxyInfo) throws IOException {
         if (proxyConfiguration.isEnabled()) {
             return;
@@ -44,6 +46,7 @@ public class ProxyService {
         mirroredProxyConnector.waitForClientConnectionAndStartDataForwarding(mirrorServerSocket, proxyInfo.getTargetServerAddress(), proxyInfo.getTargetServerPort());
     }
 
+    @Override
     public void disableProxy() throws IOException {
         if (!proxyConfiguration.isEnabled()) {
             return;
@@ -61,5 +64,4 @@ public class ProxyService {
 
         logger.info("Stopping proxy server");
     }
-
 }

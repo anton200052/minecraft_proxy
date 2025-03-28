@@ -25,7 +25,7 @@ public class MirroredProxyConnector {
         while (proxyConfiguration.isEnabled()) {
             try {
                 Socket clientSocket = localServerSocket.accept();
-                String clientHostAddress = clientSocket.getLocalAddress().getHostAddress();
+                String clientHostAddress = clientSocket.getInetAddress().getHostAddress();
                 logger.info("Подключен зеркальный клиент: {}", clientHostAddress);
                 Socket serverSocket = new Socket(targetServerAddress, targetServerPort);
 

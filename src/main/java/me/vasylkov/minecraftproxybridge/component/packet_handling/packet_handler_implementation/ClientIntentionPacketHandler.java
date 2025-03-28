@@ -12,7 +12,6 @@ import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Clien
 import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Packet;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Component

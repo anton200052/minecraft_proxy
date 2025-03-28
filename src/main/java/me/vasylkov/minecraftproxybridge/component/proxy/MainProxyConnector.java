@@ -25,7 +25,7 @@ public class MainProxyConnector {
         while (proxyConfiguration.isEnabled()) {
             try {
                 Socket clientSocket = localServerSocket.accept();
-                String hostAddress = clientSocket.getLocalAddress().getHostAddress();
+                String hostAddress = clientSocket.getInetAddress().getHostAddress();
 
                 logger.info("Подключен клиент: {}", hostAddress);
                 Socket serverSocket = new Socket(targetServerAddress, targetServerPort);

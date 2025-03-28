@@ -30,7 +30,7 @@ public class PacketHelper {
         return buffer;
     }
 
-    public void printPacketData(byte[] buffer, PacketDirection packetDirection, PacketState packetState, ClientType clientType) {
+    /*public void printPacketData(byte[] buffer, PacketDirection packetDirection, PacketState packetState, ClientType clientType) {
         StringBuilder hexData = new StringBuilder();
         for (byte b : buffer) {
             hexData.append(String.format("%02X ", b));
@@ -39,5 +39,5 @@ public class PacketHelper {
         if (clientType == ClientType.MIRROR) {
             logger.info("{}: {} {} {}", packetDirection, clientType, packetState, hexData.toString().trim());
         }
-    }
+    }*/
 }

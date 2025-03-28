@@ -1,4 +1,7 @@
 package me.vasylkov.minecraftproxybridge.service;
 
-public class ProxyClientService {
+import me.vasylkov.minecraftproxybridge.entity.ProxyClient;
+
+public interface ProxyClientService {
+    ProxyClient saveClientIfNotPresent(ProxyClient proxyClient);
 }

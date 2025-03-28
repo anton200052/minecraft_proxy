@@ -3,7 +3,7 @@ package me.vasylkov.minecraftproxybridge.controller;
 import lombok.RequiredArgsConstructor;
 import me.vasylkov.minecraftproxybridge.component.proxy.ProxyConfiguration;
 import me.vasylkov.minecraftproxybridge.model.proxy.ProxyInfo;
-import me.vasylkov.minecraftproxybridge.service.ProxyService;
+import me.vasylkov.minecraftproxybridge.service.ProxyServiceImp;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +17,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @RequestMapping("/proxy")
 public class MainController {
-    private final ProxyService proxyService;
+    private final ProxyServiceImp proxyServiceImp;
     private final ProxyConfiguration proxyConfiguration;
 
     @GetMapping("/control")
@@ -35,13 +35,13 @@ public class MainController {
 
     @PostMapping("/enable")
     public String enable(@ModelAttribute("proxyInfo") ProxyInfo proxyInfo, Model model) throws IOException {
-        proxyService.enableProxy(proxyInfo);
+        proxyServiceImp.enableProxy(proxyInfo);
         return "redirect:/proxy/control";
     }
 
     @GetMapping("/disable")
     public String disable(Model model) throws IOException {
-        proxyService.disableProxy();
+        proxyServiceImp.disableProxy();
         return "redirect:/proxy/control";
     }
 }

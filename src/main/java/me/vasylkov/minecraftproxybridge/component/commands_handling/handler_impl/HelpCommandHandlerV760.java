@@ -9,6 +9,7 @@ import me.vasylkov.minecraftproxybridge.model.packet.packet_implementation.Syste
 import me.vasylkov.minecraftproxybridge.model.packet.packet_tool.ChatMessage;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -23,8 +24,8 @@ public class HelpCommandHandlerV760 extends HelpCommandHandler {
     }
 
     @Override
-    public CommandHandlerKey getHandledCommandKey() {
-        return new CommandHandlerKey(".help",
-                                     ServerVersion.V1_19_2);
+    public List<CommandHandlerKey> getHandledCommandKeys() {
+        return List.of(new CommandHandlerKey(".help",
+                                             ServerVersion.V1_19_2));
     }
 }
