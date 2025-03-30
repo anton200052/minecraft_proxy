@@ -16,9 +16,10 @@ import java.io.IOException;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/proxy")
-public class MainController {
+public class ProxyController {
     private final ProxyServiceImp proxyServiceImp;
     private final ProxyConfiguration proxyConfiguration;
+
 
     @GetMapping("/control")
     public String control(Model model) {

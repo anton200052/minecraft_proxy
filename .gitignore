@@ -20,7 +20,6 @@ logs
 *.iml
 *.ipr
 config
-*.properties
 
 ### NetBeans ###
 /nbproject/private/
