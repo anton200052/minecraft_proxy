@@ -61,11 +61,6 @@ The following diagram illustrates the traffic flow during the "Shadow Swap" proc
 * Manually handles **VarInt** encoding/decoding, buffer reading, and packet ID mapping.
 * Implements the full Handshake and Login sequence logic.
 
-### 💾 Data Persistence
-**Stack:** `SQL Database`
-* Logs every intercepted packet and connection attempt.
-* Used for post-analysis of traffic patterns.
-
 ### 🪞 Mirror Logic & State Manager
 **Stack:** `Custom State Machine`
 * Contains complex logic to sync the "Shadow" client.
