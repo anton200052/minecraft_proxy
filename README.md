@@ -1,93 +1,82 @@
-Minecraft Packet Sniffer & Shadow Proxy
-A Man-in-the-Middle (MitM) proxy server designed to analyze, intercept, and manipulate Minecraft protocol traffic.
+# Minecraft Protocol Reverse Engineering & Shadow Proxy
 
-This project is a Proof-of-Concept (PoC) demonstrating a vulnerability in non-licensed ("cracked" / offline-mode) Minecraft servers where packet encryption is often disabled. By implementing the Minecraft protocol from scratch, this tool allows for seamless session hijacking ("Shadow Swapping") and packet-level manipulation without modifying the game client.
+![Java](https://img.shields.io/badge/Java-Spring_Boot-orange)
+![Protocol](https://img.shields.io/badge/Protocol-TCP%2FIP-blue)
+![Architecture](https://img.shields.io/badge/Architecture-MitM-purple)
+![Type](https://img.shields.io/badge/Type-Research_PoC-red)
 
-🔬 The Vulnerability: Unencrypted Traffic
-The core concept relies on the fact that many unofficial Minecraft servers disable standard packet encryption to allow players without Mojang accounts to join.
+**A custom-built Man-in-the-Middle (MitM) proxy infrastructure designed to analyze, intercept, and manipulate Minecraft protocol traffic in real-time.**
 
-Using the Minecraft Protocol Documentation, I implemented a custom Packet Sniffer & Deserializer.
+This project explores vulnerabilities in the unencrypted communication of non-licensed ("offline-mode") Minecraft servers. It features a completely custom implementation of the Minecraft Protocol (handshake, packet serialization/deserialization) written from scratch without external protocol libraries.
 
-From Scratch Implementation: No external protocol libraries were used. Every byte is read and parsed into Java Objects manually based on the protocol specification.
+---
 
-Deep Inspection: The proxy sits between the client and the server, intercepting raw TCP traffic, converting it to readable objects, and re-serializing it back to the stream.
+## 💡 The Novel Discovery
 
-🕵️ Key Mechanics: "Shadow Session" & Hot-Swapping
-The most advanced feature of this proxy is the Session Hot-Swap mechanism, designed to bypass "Screen Share" (SS) checks commonly used by server administrators to detect cheats.
+During the development of this research tool, I identified and implemented a unique vulnerability exploitation technique that—to the best of my knowledge—**has not been previously documented or utilized in public game security research.**
 
-How the "Shadow Swap" Works
-The system utilizes two distinct proxy ports to manage two simultaneous client connections for a single server session.
+**The Discovery:**
+It is possible to maintain a single active session with the Game Server while seamlessly "hot-swapping" the control between two completely different physical client instances. By manipulating the TCP stream at the proxy level, a session can be transferred from a "Dirty" client (running cheat software) to a "Clean" client (running vanilla software) **without the server detecting a disconnect or protocol violation.**
 
-The "Dirty" Client (Active):
+---
 
-Connects to Proxy Port A (e.g., 25565).
+## 🛠️ How It Works
 
-Status: Full Control. Sends packets to the server and receives updates.
+The core vulnerability lies in the fact that many unofficial servers disable packet encryption. This allows the proxy to act as a transparent bridge, parsing raw bytes into Java Objects and vice versa.
 
-Usage: The player uses this client with cheats/mods injected on their main machine.
+### 1. Packet Sniffing & Manipulation (Client-less Cheats)
+Since the proxy understands the protocol structure, it can modify packets on the fly.
+* **Concept:** Instead of injecting code into the game process (which Anti-Cheats scan for), the proxy modifies the network stream.
+* **Example:** The proxy can artificially generate "Attack" packets or modify "Position" packets, effectively implementing cheats (like AutoClicker or Reach) while the game client remains unmodified and clean during file system inspections.
 
-The "Shadow" Client (Passive):
+### 2. The "Shadow Swap" Mechanism
+This is the flagship feature designed to bypass manual administrative checks (Screen Shares).
 
-Connects to Proxy Port B (e.g., 25566) from a clean machine or VM.
+* **Phase 1: Mirroring.** Two clients connect to the proxy ports. Client A (Cheats) controls the player. Client B (Clean) acts as a "Shadow"—it receives all data *from* the server (rendering the game world) but its outgoing packets are **blocked** by the proxy.
+* **Phase 2: The Swap.** When a check is initiated, Client A is closed. The proxy detects the socket closure but keeps the server connection alive.
+* **Phase 3: Handover.** The proxy instantly unblocks Client B. Client B takes over the session seamlessly. The administrator sees a user playing on a clean client with no history of cheats in the process list.
 
-Status: Read-Only (Phantom). The proxy forwards all packets from the Server to this client, but blocks all outgoing packets from this client to the server.
+---
 
-Result: The Shadow Client mirrors the exact movement and state of the Dirty Client in real-time, effectively spectating the session from a first-person perspective.
+## 🏗️ Architecture Flow
 
-The Handover (The Exploit):
+The following diagram illustrates the traffic flow during the "Shadow Swap" process.
+<img width="5292" height="4575" alt="Image" src="https://github.com/user-attachments/assets/0ed96ba6-c784-4b71-89e1-79e2bc638753" />
+---
+## 🗂️ Technical Implementation
 
-When an admin requests a screen share check, the player disconnects/closes the Dirty Client.
+### ⚙️ Core Framework
+**Stack:** `Java` / `Spring Boot`
+* Manages the application lifecycle and dependency injection.
+* Ensures modularity and ease of testing.
 
-The Proxy detects the socket closure but keeps the connection to the Minecraft Server alive.
+### 🔌 Networking
+**Stack:** `java.net.Socket` (Native)
+* Low-level TCP socket management.
+* **Zero external network libraries:** No Netty or high-level wrappers were used. This ensures absolute granular control over every byte sent and received.
 
-The Proxy immediately promotes the Shadow Client to "Active" status, allowing it to send packets.
+### 🧠 Protocol Engine
+**Stack:** `Custom Implementation`
+* A "From Scratch" implementation of the [Minecraft Protocol](https://minecraft.wiki/w/Minecraft_Wiki:Protocol_documentation).
+* Manually handles **VarInt** encoding/decoding, buffer reading, and packet ID mapping.
+* Implements the full Handshake and Login sequence logic.
 
-Outcome: The player continues the session seamlessly on the clean machine (Shadow Client) without ever logging out or triggering a "player left" message on the server.
+### 💾 Data Persistence
+**Stack:** `SQL Database`
+* Logs every intercepted packet and connection attempt.
+* Used for post-analysis of traffic patterns.
 
-Architecture Diagram
-Фрагмент кода
+### 🪞 Mirror Logic & State Manager
+**Stack:** `Custom State Machine`
+* Contains complex logic to sync the "Shadow" client.
+* Ensures the shadow client receives the exact initialization sequence (Join Game, Chunk Data, Inventory) to match the active client's state perfectly before the swap occurs.
 
-sequenceDiagram
-    participant DirtyClient as Client A (Cheats)
-    participant ShadowClient as Client B (Clean)
-    participant Proxy as MitM Proxy
-    participant Server as Minecraft Server
+---
 
-    Note over DirtyClient, Server: Phase 1: Gameplay
-    DirtyClient->>Proxy: Send Movement/Action Packets
-    Proxy->>Server: Forward Packets
-    Server->>Proxy: Send World Updates
-    Proxy->>DirtyClient: Forward Updates
-    Proxy->>ShadowClient: Mirror Updates (Sync State)
-    ShadowClient->>Proxy: Send Packets (BLOCKED ❌)
+## ⚠️ Disclaimer
 
-    Note over DirtyClient, Server: Phase 2: The Swap
-    DirtyClient->>Proxy: Disconnect (Close Socket)
-    Proxy->>Proxy: Detect Disconnect -> Promote Client B
-    
-    Note over ShadowClient, Server: Phase 3: Clean Session
-    ShadowClient->>Proxy: Send Movement/Action Packets
-    Proxy->>Server: Forward Packets (Allowed ✅)
-    Server->>Proxy: Send World Updates
-    Proxy->>ShadowClient: Forward Updates
-⚡ Additional Capabilities
-🛠 Client-less Packet Manipulation (External Cheats)
-Traditional cheats require modifying the game code (internal cheats) or injecting DLLs. This proxy allows for External Packet Manipulation.
+**Educational Purpose Only.**
+This software was developed as a Proof of Concept (PoC) to demonstrate vulnerabilities in unencrypted network protocols and the risks of relying on client-side checks for anti-cheat enforcement.
 
-Since the proxy parses packets into Java Objects, logic can be written on the proxy side to modify player behavior (e.g., AutoClicker, Aura, Anti-Knockback) by altering outgoing packets.
-
-Benefit: The game client remains 100% vanilla (unmodified), making client-side anti-cheats ineffective against these modifications.
-
-🧩 Modular Architecture
-The project is built on Spring Boot, allowing for easy extension:
-
-Packet Handler Interface: Easily add new logic for specific packet IDs.
-
-Version Agnostic Design: While currently supporting specific versions, the deserializer pattern is adaptable to protocol updates.
-
-⚠️ Disclaimer
-This software is developed for educational and research purposes only, to demonstrate vulnerabilities in unencrypted network protocols.
-
-Do not use this tool to violate the Terms of Service of any Minecraft server.
-
-The author does not condone cheating or malicious behavior in online games.
+* This tool is not intended for malicious use in online games.
+* The author does not condone violating the Terms of Service of any platform.
