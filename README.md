@@ -42,6 +42,7 @@ This is the flagship feature designed to bypass manual administrative checks (Sc
 
 The following diagram illustrates the traffic flow during the "Shadow Swap" process.
 <img width="5292" height="4575" alt="Image" src="https://github.com/user-attachments/assets/0ed96ba6-c784-4b71-89e1-79e2bc638753" />
+
 ---
 ## 🗂️ Technical Implementation
 
@@ -67,6 +68,21 @@ The following diagram illustrates the traffic flow during the "Shadow Swap" proc
 * Ensures the shadow client receives the exact initialization sequence (Join Game, Chunk Data, Inventory) to match the active client's state perfectly before the swap occurs.
 
 ---
+
+## ⚙️ Getting Started
+### Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/anton200052/minecraft_proxy
+    cd minecraft_proxy
+    ```
+
+3.  **Build and Run:**
+    ```bash
+    mvn spring-boot:run
+    ```
+    *The application will start on `http://localhost:8080` (or your configured port).*
 
 ## ⚠️ Disclaimer
 
